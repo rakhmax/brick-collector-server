@@ -1,24 +1,5 @@
-# lego-database-2
+# Smart Home Hub
 
-## Project setup
-```
-yarn install
-```
+[Install frontend](client/README.md)
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+[Install backend](server/README.md)
