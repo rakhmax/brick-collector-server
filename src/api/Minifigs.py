@@ -5,7 +5,19 @@ from ..db import db
 
 class Minifigs(Resource):
     def get(self):
-        minifigs = list(db.minifigures.find({}, { '_id': 0 }))
+        minifigs = list(db.minifigures.aggregate([
+            {'$group' : {
+                '_id': '$number',
+                'img': {'$first': '$img'},
+                'name': {'$first': '$name'},
+                'price': {'$first': '$price'},
+                'theme': {'$first': '$theme'},
+                'number': {'$first': '$number'},
+                'comment': {'$first': '$comment'},
+                'count': { '$sum': 1 }
+            }},
+            {'$project': {'_id': 0}}
+        ]))
 
         return minifigs
 
