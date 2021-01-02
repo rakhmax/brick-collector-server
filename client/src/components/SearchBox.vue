@@ -36,6 +36,7 @@
 <script>
 import { debounce } from 'lodash';
 import searchData from '../api/search';
+import { eventBus } from '../main';
 
 export default {
   name: 'App',
@@ -46,10 +47,12 @@ export default {
     loading: false,
     items: [],
     search: null,
-    select: null,
   }),
   watch: {
     search(val) {
+      eventBus.$emit('search', {
+        search: this.search,
+      });
       if (val) {
         this.querySelections(val);
       } else {
@@ -70,7 +73,7 @@ export default {
           number: item.id,
         }));
       } catch (e) {
-        alert(e);
+        console.log(e);
       } finally {
         this.loading = false;
       }

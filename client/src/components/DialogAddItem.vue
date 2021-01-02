@@ -22,6 +22,9 @@
               >
                 <v-select
                   v-model="dialogData.theme"
+                  :items="$store.state.themes"
+                  item-text="name"
+                  item-value="id"
                   label="Theme"
                   required
                 ></v-select>
@@ -35,6 +38,7 @@
                   v-model="dialogData.price"
                   label="Price"
                   required
+                  type="number"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -75,14 +79,14 @@
 <script>
 import { SET_MINIFIGURES } from '@/store/types';
 import SearchBox from './SearchBox.vue';
-import { add } from '../api/minifigures';
+import { eventBus } from '../main';
+import { selectTheme } from '../helpers/selectThemeHelper';
 
 export default {
   components: {
     SearchBox,
   },
   data: () => ({
-    error: null,
     title: 'item',
     dialogData: {
       select: null,
@@ -100,53 +104,37 @@ export default {
     },
 
     async handleSave() {
-      const { comment, price, select } = this.dialogData;
+      const {
+        comment,
+        price,
+        select,
+        theme,
+      } = this.dialogData;
 
       if (select) {
         const data = {
           ...select,
+          theme,
           price,
           comment,
         };
 
-        try {
-          this.error = null;
-          await add(data);
-          this.$store.dispatch(SET_MINIFIGURES, data);
-          this.handleClose();
-        } catch (e) {
-          this.error = { message: e.message };
-        }
+        await this.$store.dispatch(SET_MINIFIGURES, data);
+        this.handleClose();
       } else {
         this.error = { message: 'Select an item' };
       }
     },
   },
-  mounted() {
-    switch (this.$route.name) {
-      case 'Minifigs':
-        this.title = 'minifig';
-        break;
-      case 'Sets':
-        this.title = 'set';
-        break;
-      default:
-        break;
-    }
-  },
   computed: {
-    titleByRoute: {
-      get() {
-        return this.title;
-      },
-      set() {
-        this.title = window.location.pathname;
-      },
-    },
-
     disabledSave() {
-      return !(this.dialogData.select && this.dialogData.price);
+      return !(this.dialogData.select && this.dialogData.price) || this.$store.state.saving;
     },
+  },
+  created() {
+    eventBus.$on('search', ({ search }) => {
+      selectTheme.call(this, search);
+    });
   },
 };
 </script>

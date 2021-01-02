@@ -3,9 +3,24 @@
     :headers="headers"
     :items="minifigures"
     :loading="$store.state.loading"
+    :search="search"
     class="elevation-1"
+    group-by="theme"
     loading-text="Loading minifigures..."
-  ></v-data-table>
+  >
+    <template v-slot:item.theme="{ item }">
+      <span>{{ $store.state.themes.find((theme) => {
+        return theme.id === item.theme;
+      }).name }}</span>
+    </template>
+    <template v-slot:top>
+      <v-text-field
+        v-model="search"
+        label="Search"
+        class="mx-4"
+      />
+    </template>
+  </v-data-table>
 </template>
 
 <script>
@@ -15,6 +30,7 @@ export default {
   name: 'TableMinifigures',
 
   data: () => ({
+    search: '',
     headers: [
       // { text: 'ID', value: 'number' },
       {
@@ -36,14 +52,8 @@ export default {
 
   methods: {
     async getAll() {
-      try {
-        await this.$store.dispatch(GET_MINIFIGURES);
-        this.minifigures = this.$store.state.minifigures;
-      } catch (error) {
-        console.log(error);
-      } finally {
-        this.loading = false;
-      }
+      await this.$store.dispatch(GET_MINIFIGURES);
+      this.minifigures = this.$store.state.minifigures;
     },
   },
 

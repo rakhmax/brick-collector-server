@@ -11,14 +11,19 @@ const routes = [
     component: Home,
   },
   {
-    path: '/minifigs',
-    name: 'Minifigs',
-    component: () => import('../views/Minifigs.vue'),
+    path: '/minifigures',
+    name: 'Minifigures',
+    component: () => import('../views/Minifigures.vue'),
   },
   {
     path: '/sets',
     name: 'Sets',
     component: () => import('../views/Sets.vue'),
+  },
+  {
+    path: '/statistics',
+    name: 'Statistics',
+    component: () => import('../views/Statistics.vue'),
   },
 ];
 
