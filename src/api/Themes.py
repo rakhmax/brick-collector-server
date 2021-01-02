@@ -1,6 +1,7 @@
 import requests
 from flask_restful import Resource
-from ..const import rebrickableApiUrl, rebrickableApiKey
+from ..const import rebrickableApiKey, rebrickableApiUrl
+
 
 class Themes(Resource):
     def get(self):

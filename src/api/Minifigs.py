@@ -1,6 +1,6 @@
 from flask import request
 from flask_restful import Resource
-from bson.json_util import dumps, loads
+from bson.json_util import loads
 from ..db import db
 
 class Minifigs(Resource):
