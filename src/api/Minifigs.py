@@ -8,6 +8,7 @@ class Minifigs(Resource):
         minifigs = list(db.minifigures.aggregate([
             {'$group' : {
                 '_id': '$number',
+                'legoId': {'$first': '$legoId'},
                 'img': {'$first': '$img'},
                 'name': {'$first': '$name'},
                 'price': {'$first': '$price'},

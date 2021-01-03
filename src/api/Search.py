@@ -22,11 +22,16 @@ class Search(Resource):
                 id = item['id']
                 img = image['src']
                 n = image.next_element.replace(id, '')
-                year = re.search(r'\((\d+)\)', n).groups()[0] or None
+                year = re.search(r'\((\d+)\)', n)
+
+                if year:
+                    year = year.groups()[0]
+                
                 name = n.replace(f'({year})', '')
 
                 result.append({
-                    'id': id,
+                    'legoId': query if len(response) == 1 else None,
+                    'number': id,
                     'name': name.strip(),
                     'year': year,
                     'img': img,
