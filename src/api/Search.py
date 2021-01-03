@@ -16,26 +16,27 @@ class Search(Resource):
             result = []
 
             for item in response:
-                soup = BeautifulSoup(item['name'], 'lxml')
-                image = soup.find('img')
+                if item['url'].startswith('/minifig') or item['url'].startswith('/sets'):
+                    soup = BeautifulSoup(item['name'], 'lxml')
+                    image = soup.find('img')
 
-                id = item['id']
-                img = image['src']
-                n = image.next_element.replace(id, '')
-                year = re.search(r'\((\d+)\)', n)
+                    id = item['id']
+                    img = image['src']
+                    n = image.next_element.replace(id, '')
+                    year = re.search(r'\((\d+)\)', n)
 
-                if year:
-                    year = year.groups()[0]
-                
-                name = n.replace(f'({year})', '')
+                    if year:
+                        year = year.groups()[0]
+                    
+                    name = n.replace(f'({year})', '')
 
-                result.append({
-                    'legoId': query if len(response) == 1 else None,
-                    'number': id,
-                    'name': name.strip(),
-                    'year': year,
-                    'img': img,
-                })
+                    result.append({
+                        'legoId': query if len(response) == 1 else None,
+                        'number': id,
+                        'name': name.strip(),
+                        'year': year,
+                        'img': img,
+                    })
 
             return result
         except Exception as e:
