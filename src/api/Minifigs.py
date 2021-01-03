@@ -32,3 +32,11 @@ class Minifigs(Resource):
         except Exception as e:
             if e.code == 11000:
                 return { 'error': { 'message': 'Already in the collection' }}, 503
+
+    def delete(self):
+        lego_id = request.data.decode('utf-8')
+
+        try:
+            return db.minifigures.find_one_and_delete({ 'legoId': lego_id }, { '_id': 0 })
+        except Exception as e:
+            print(e)
