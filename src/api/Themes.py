@@ -1,11 +1,19 @@
-import requests
+from bricklink_api.category import get_category_list
+from flask import current_app
 from flask_restful import Resource
-from ..const import rebrickableApiKey, rebrickableApiUrl
 
 
 class Themes(Resource):
     def get(self):
-        themes = requests.get(f'{rebrickableApiUrl}/themes/?key={rebrickableApiKey}&page_size=1000').json()
-        filtered_themes = [theme for theme in themes['results'] if theme['parent_id'] == None]
+        themes = get_category_list(auth=current_app.config['BRICKLINK_AUTH'])
+
+        filtered_themes = []
+
+        for theme in themes['data']:
+            if theme['parent_id'] == 0:
+                filtered_themes.append({
+                    'id': theme['category_id'],
+                    'name': theme['category_name']
+                })
 
         return filtered_themes

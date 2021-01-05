@@ -1,21 +1,19 @@
 import os
+from bricklink_api.auth import oauth
 from flask import Flask
 from flask_cors import CORS
-from flask_restful import Api
-from src.api.Themes import Themes
+from .const import *
 
 
 app = Flask(__name__)
 CORS(app)
-api = Api(app)
 
+from .resources import *
 
-from .api.Minifigs import Minifigs
-from .api.Search import Search
-
-
+app.config['BRICKLINK_AUTH'] = oauth(
+    bricklink_consumer_key,
+    bricklink_consumer_secret,
+    bricklink_token_value,
+    bricklink_token_secret
+)
 app.config['SECRET_KEY'] = os.urandom(12)
-
-api.add_resource(Minifigs, '/minifigs')
-api.add_resource(Search, '/search')
-api.add_resource(Themes, '/themes')
