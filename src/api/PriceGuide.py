@@ -1,6 +1,7 @@
-from bricklink_api.catalog_item import get_price_guide, Type, NewOrUsed, GuideType
+from bricklink_api.catalog_item import get_price_guide, NewOrUsed
 from flask import current_app, request
 from flask_restful import Resource
+
 
 class PriceGuide(Resource):
     def get(self):

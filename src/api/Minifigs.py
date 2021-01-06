@@ -3,6 +3,7 @@ from bricklink_api.catalog_item import get_item, Type
 from bson.json_util import loads
 from flask import current_app, request
 from flask_restful import Resource
+from pymongo.collection import ReturnDocument
 from ..db import db
 
 
@@ -25,7 +26,12 @@ class Minifigs(Resource):
                 }},
                 {'$project': { '_id': 0 }}]))
 
-            return minifigs
+            total = self.mf_col.count_documents({})
+
+            return {
+                'minifigs': minifigs,
+                'total': total
+            }
         except Exception as e:
             print(e)
 
@@ -52,13 +58,27 @@ class Minifigs(Resource):
                     'thumbnail': bricklink_data['thumbnail_url']
                 },
                 'year': bricklink_data['year_released'],
-                'price': data['price'],
+                'price': float(data['price']),
                 'comment': data['comment']
             }
 
             minifigure = self.mf_col.insert_one(minifig)
 
             return self.mf_col.find_one({ '_id': minifigure.inserted_id }, { '_id': 0 })
+        except Exception as e:
+            print(e)
+
+    def patch(self):
+        try:
+            data = loads(request.data)
+
+            updated_minifig = self.mf_col.find_one_and_update(
+                { 'itemId': data['itemId'] },
+                { '$set': data },
+                { '_id': 0 },
+                return_document=ReturnDocument.AFTER)
+
+            return updated_minifig
         except Exception as e:
             print(e)
 

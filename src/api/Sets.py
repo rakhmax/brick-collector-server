@@ -4,6 +4,7 @@ from bson.json_util import loads
 from bson.objectid import ObjectId
 from flask import current_app, request
 from flask_restful import Resource
+from pymongo.collection import ReturnDocument
 from ..db import db
 
 
@@ -26,6 +27,7 @@ class Sets(Resource):
                     'minifigures': {'$first': '$minifigures'},
                     'pieces': {'$first': '$pieces'},
                     'extraPieces': {'$first': '$extraPieces'},
+                    'sealed': {'$first': '$sealed'},
                     'count': { '$sum': 1 }
                 }},
                 {'$project': {
@@ -40,11 +42,17 @@ class Sets(Resource):
                     'count': 1,
                     'pieces': 1,
                     'extraPieces': 1,
+                    'sealed': 1,
                     'minifiguresCount': { '$size': '$minifigures' }
                 }}
             ]))
 
-            return sets
+            total = self.s_col.count_documents({})
+
+            return {
+                'sets': sets,
+                'total': total
+            }
         except Exception as e:
             print(e)
 
@@ -115,15 +123,18 @@ class Sets(Resource):
                     'thumbnail': bricklink_data['thumbnail_url']
                 },
                 'year': bricklink_data['year_released'],
-                'minifigures': [minifigure['itemId'] for minifigure in minifigures],
-                'price': data['price'],
+                'minifigures': [minifigure['_id'] for minifigure in minifigures],
+                'price': float(data['price']) if data['price'] else None,
                 'comment': data['comment'],
+                'sealed': data['sealed'],
                 'pieces': pieces,
                 'extraPieces': extra_pieces
             }
 
             inserted_set = self.s_col.insert_one(set_data).inserted_id
-            self.mf_col.insert_many(minifigures, ordered=False)
+
+            if minifigures:
+                self.mf_col.insert_many(minifigures, ordered=False)
 
             mf = []
 
@@ -131,16 +142,49 @@ class Sets(Resource):
                 del minifig['_id']
                 mf.append(minifig)
 
+            inserted_set = self.s_col.find_one({ '_id': inserted_set }, { '_id': 0 })
+            inserted_set['minifiguresCount'] = len(inserted_set['minifigures'])
+            inserted_set['count'] = 1
+            del inserted_set['minifigures']
+
             return {
                 'minifigures': mf,
-                'set': self.s_col.find_one({ '_id': inserted_set }, { '_id': 0 })
+                'set': inserted_set
             }
+        except Exception as e:
+            print(e)
+
+    def patch(self):
+        try:
+            data = loads(request.data)
+
+            updated_set = self.s_col.find_one_and_update(
+                { 'itemId': data['itemId'] },
+                { '$set': data },
+                { '_id': 0 },
+                return_document=ReturnDocument.AFTER)
+
+            updated_set['minifiguresCount'] = len(updated_set['minifigures'])
+            updated_set['count'] = 1
+            del updated_set['minifigures']
+
+            return updated_set
         except Exception as e:
             print(e)
 
     def delete(self):
         try:
-            lego_id = request.data.decode('utf-8')
-            return self.s_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
+            data = loads(request.data)
+            lego_id = data['itemId']
+            with_minifigures = data['withMinifigures']
+
+            deleted_set = self.s_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
+
+            if with_minifigures:
+                self.mf_col.delete_many({ '_id': { '$in': deleted_set['minifigures'] } })
+
+            del deleted_set['minifigures']
+
+            return deleted_set
         except Exception as e:
             print(e)
