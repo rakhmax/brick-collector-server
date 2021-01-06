@@ -4,16 +4,17 @@ from flask_restful import Resource
 
 class PriceGuide(Resource):
     def get(self):
-        item_id = request.args.get('0')
+        item_id = request.args.get('id')
+        type = request.args.get('type')
 
         price_guide_new = get_price_guide(
-            Type.MINIFIG,
+            type,
             item_id,
             auth=current_app.config['BRICKLINK_AUTH']
         )
 
         price_guide_used = get_price_guide(
-            Type.MINIFIG,
+            type,
             item_id,
             new_or_used=NewOrUsed.USED,
             auth=current_app.config['BRICKLINK_AUTH']
