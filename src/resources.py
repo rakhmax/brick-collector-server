@@ -1,10 +1,10 @@
 from flask_restful import Api
-from .app import app
-from .api.Minifigures import Minifigures
-from .api.Search import Search
-from .api.Themes import Themes
-from .api.PriceGuide import PriceGuide
-from .api.Sets import Sets
+from src.app import app
+from src.api.Minifigures import Minifigures
+from src.api.PriceGuide import PriceGuide
+from src.api.Search import Search
+from src.api.Sets import Sets
+from src.api.Themes import Themes
 
 
 api = Api(app)

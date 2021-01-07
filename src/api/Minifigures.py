@@ -4,7 +4,7 @@ from bson.json_util import loads
 from flask import current_app, request
 from flask_restful import Resource
 from pymongo.collection import ReturnDocument
-from ..db import db
+from src.db import db
 
 
 class Minifigures(Resource):

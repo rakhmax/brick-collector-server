@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from flask import request
 from flask_restful import Resource
-from ..const import rebrickableSearchUrl
+from src.const import rebrickableSearchUrl
 
 
 class Search(Resource):

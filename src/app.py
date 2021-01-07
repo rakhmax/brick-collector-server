@@ -2,7 +2,7 @@ import os
 from bricklink_api.auth import oauth
 from flask import Flask
 from flask_cors import CORS
-from .const import *
+from src.const import *
 
 
 app = Flask(__name__)

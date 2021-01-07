@@ -5,7 +5,6 @@ from bson.objectid import ObjectId
 from flask import current_app, request
 from flask_restful import Resource
 from pymongo.collection import ReturnDocument
-from src.helpers.clearNullItems import cleanNullTerms
 from src.db import db
 
 
