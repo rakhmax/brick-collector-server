@@ -5,21 +5,19 @@ from flask_restful import Resource
 
 class PriceGuide(Resource):
     def get(self):
-        item_id = request.args.get('id')
+        item_id = request.args.get('itemId')
         type = request.args.get('type')
 
         price_guide_new = get_price_guide(
             type,
             item_id,
-            auth=current_app.config['BRICKLINK_AUTH']
-        )
+            auth=current_app.config['BRICKLINK_AUTH'])
 
         price_guide_used = get_price_guide(
             type,
             item_id,
             new_or_used=NewOrUsed.USED,
-            auth=current_app.config['BRICKLINK_AUTH']
-        )
+            auth=current_app.config['BRICKLINK_AUTH'])
 
         price_guide = {
             'new': {

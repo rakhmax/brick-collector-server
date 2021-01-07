@@ -7,7 +7,7 @@ from pymongo.collection import ReturnDocument
 from ..db import db
 
 
-class Minifigs(Resource):
+class Minifigures(Resource):
     mf_col = db.minifigures
 
     def get(self):
@@ -34,20 +34,24 @@ class Minifigs(Resource):
             }
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def post(self):
         try:
             data = loads(request.data)
 
-            json = get_item(
+            json_minifigs = get_item(
                 Type.MINIFIG,
-                data['id'],
+                data['itemId'],
                 auth=current_app.config['BRICKLINK_AUTH'])
 
-            bricklink_data = json['data']
+            if json_minifigs['meta']['code'] == 400:
+                raise Exception('No item with the ID')
+
+            bricklink_data = json_minifigs['data']
 
             if not bricklink_data:
-                raise Exception('No items with the ID')
+                raise Exception('No item with the ID')
 
             minifig = {
                 'itemId': bricklink_data['no'],
@@ -67,6 +71,7 @@ class Minifigs(Resource):
             return self.mf_col.find_one({ '_id': minifigure.inserted_id }, { '_id': 0 })
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def patch(self):
         try:
@@ -81,6 +86,7 @@ class Minifigs(Resource):
             return updated_minifig
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def delete(self):
         try:
@@ -88,3 +94,4 @@ class Minifigs(Resource):
             return self.mf_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500

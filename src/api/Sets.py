@@ -5,7 +5,8 @@ from bson.objectid import ObjectId
 from flask import current_app, request
 from flask_restful import Resource
 from pymongo.collection import ReturnDocument
-from ..db import db
+from src.helpers.clearNullItems import cleanNullTerms
+from src.db import db
 
 
 class Sets(Resource):
@@ -55,6 +56,7 @@ class Sets(Resource):
             }
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def post(self):
         try:
@@ -62,8 +64,11 @@ class Sets(Resource):
 
             json_sets = get_item(
                 Type.SET,
-                data['id'],
+                data['itemId'],
                 auth=current_app.config['BRICKLINK_AUTH'])
+
+            if json_sets['meta']['code'] == 400:
+                raise Exception('No item with the ID')
 
             bricklink_data = json_sets['data']
 
@@ -72,7 +77,7 @@ class Sets(Resource):
 
             bricklink_parts_data = get_subsets(
                 Type.SET,
-                data['id'],
+                data['itemId'],
                 instruction=False,
                 box=False,
                 break_minifigs=False,
@@ -153,6 +158,7 @@ class Sets(Resource):
             }
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def patch(self):
         try:
@@ -171,6 +177,7 @@ class Sets(Resource):
             return updated_set
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
 
     def delete(self):
         try:
@@ -188,3 +195,4 @@ class Sets(Resource):
             return deleted_set
         except Exception as e:
             print(e)
+            return {'error': 'err'}, 500
