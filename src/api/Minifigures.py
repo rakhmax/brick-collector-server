@@ -62,7 +62,7 @@ class Minifigures(Resource):
                     'thumbnail': bricklink_data['thumbnail_url']
                 },
                 'year': bricklink_data['year_released'],
-                'price': float(data['price']),
+                'price': float(data['price']) if data['price'] else None,
                 'comment': data['comment']
             }
 
