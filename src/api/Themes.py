@@ -1,11 +1,11 @@
 from bricklink_api.category import get_category_list
-from flask import current_app
 from flask_restful import Resource
+from src.app import auth
 
 
 class Themes(Resource):
     def get(self):
-        themes = get_category_list(auth=current_app.config['BRICKLINK_AUTH'])
+        themes = get_category_list(auth=auth)
 
         filtered_themes = []
 

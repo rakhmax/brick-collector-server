@@ -2,9 +2,10 @@ import html
 from bricklink_api.catalog_item import get_item, get_subsets, Type
 from bson.json_util import loads
 from bson.objectid import ObjectId
-from flask import current_app, request
+from flask import request
 from flask_restful import Resource
 from pymongo.collection import ReturnDocument
+from src.app import auth
 from src.db import db
 
 
@@ -64,7 +65,7 @@ class Sets(Resource):
             json_sets = get_item(
                 Type.SET,
                 data['itemId'],
-                auth=current_app.config['BRICKLINK_AUTH'])
+                auth=auth)
 
             if json_sets['meta']['code'] == 400:
                 raise Exception('No item with the ID')
@@ -80,7 +81,7 @@ class Sets(Resource):
                 instruction=False,
                 box=False,
                 break_minifigs=False,
-                auth=current_app.config['BRICKLINK_AUTH'])
+                auth=auth)
 
             pieces = 0
             extra_pieces = 0
@@ -99,7 +100,7 @@ class Sets(Resource):
                     json_minifigs = get_item(
                         Type.MINIFIG,
                         item['no'], 
-                        auth=current_app.config['BRICKLINK_AUTH'])
+                        auth=auth)
 
                     minifig_data = json_minifigs['data']
 

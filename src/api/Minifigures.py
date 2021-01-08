@@ -1,9 +1,10 @@
 import html
 from bricklink_api.catalog_item import get_item, Type
 from bson.json_util import loads
-from flask import current_app, request
+from flask import request
 from flask_restful import Resource
 from pymongo.collection import ReturnDocument
+from src.app import auth
 from src.db import db
 
 
@@ -43,7 +44,7 @@ class Minifigures(Resource):
             json_minifigs = get_item(
                 Type.MINIFIG,
                 data['itemId'],
-                auth=current_app.config['BRICKLINK_AUTH'])
+                auth=auth)
 
             if json_minifigs['meta']['code'] == 400:
                 raise Exception('No item with the ID')
@@ -66,9 +67,12 @@ class Minifigures(Resource):
                 'comment': data['comment']
             }
 
-            minifigure = self.mf_col.insert_one(minifig)
+            inserted_minifigure = self.mf_col.insert_one(minifig).inserted_id
 
-            return self.mf_col.find_one({ '_id': minifigure.inserted_id }, { '_id': 0 })
+            inserted_minifigure = self.mf_col.find_one({ '_id': inserted_minifigure }, { '_id': 0 })
+            inserted_minifigure['count'] = 1
+
+            return inserted_minifigure
         except Exception as e:
             print(e)
             return {'error': 'err'}, 500
@@ -82,6 +86,8 @@ class Minifigures(Resource):
                 { '$set': data },
                 { '_id': 0 },
                 return_document=ReturnDocument.AFTER)
+
+            updated_minifig['count'] = 1
 
             return updated_minifig
         except Exception as e:
