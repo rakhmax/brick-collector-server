@@ -10,12 +10,12 @@ from src.db import db
 
 
 class Sets(Resource):
-    mf_col = db.minifigures
-    s_col = db.sets
-
     def get(self):
         try:
-            sets = list(self.s_col.aggregate([
+            access_string = request.headers.get('Authorization')
+            s_user_col = db[f's{access_string}']
+
+            sets = list(s_user_col.aggregate([
                 {'$group' : {
                     '_id': '$itemId',
                     'itemId': {'$first': '$itemId'},
@@ -48,7 +48,7 @@ class Sets(Resource):
                 }}
             ]))
 
-            total = self.s_col.count_documents({})
+            total = s_user_col.count_documents({})
 
             return {
                 'sets': sets,
@@ -61,6 +61,9 @@ class Sets(Resource):
     def post(self):
         try:
             data = loads(request.data)
+            access_string = request.headers.get('Authorization')
+            mf_user_col = db[f'mf{access_string}']
+            s_user_col = db[f's{access_string}']
 
             json_sets = get_item(
                 Type.SET,
@@ -136,10 +139,10 @@ class Sets(Resource):
                 'extraPieces': extra_pieces
             }
 
-            inserted_set = self.s_col.insert_one(set_data).inserted_id
+            inserted_set = s_user_col.insert_one(set_data).inserted_id
 
             if minifigures:
-                self.mf_col.insert_many(minifigures, ordered=False)
+                mf_user_col.insert_many(minifigures, ordered=False)
 
             mf = []
 
@@ -147,7 +150,7 @@ class Sets(Resource):
                 del minifig['_id']
                 mf.append(minifig)
 
-            inserted_set = self.s_col.find_one({ '_id': inserted_set }, { '_id': 0 })
+            inserted_set = s_user_col.find_one({ '_id': inserted_set }, { '_id': 0 })
             inserted_set['minifiguresCount'] = len(inserted_set['minifigures'])
             inserted_set['count'] = 1
             del inserted_set['minifigures']
@@ -163,8 +166,10 @@ class Sets(Resource):
     def patch(self):
         try:
             data = loads(request.data)
+            access_string = request.headers.get('Authorization')
+            s_user_col = db[f's{access_string}']
 
-            updated_set = self.s_col.find_one_and_update(
+            updated_set = s_user_col.find_one_and_update(
                 { 'itemId': data['itemId'] },
                 { '$set': data },
                 { '_id': 0 },
@@ -182,13 +187,17 @@ class Sets(Resource):
     def delete(self):
         try:
             data = loads(request.data)
+            access_string = request.headers.get('Authorization')
+            mf_user_col = db[f'mf{access_string}']
+            s_user_col = db[f's{access_string}']
+
             lego_id = data['itemId']
             with_minifigures = data['withMinifigures']
 
-            deleted_set = self.s_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
+            deleted_set = s_user_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
 
             if with_minifigures:
-                self.mf_col.delete_many({ '_id': { '$in': deleted_set['minifigures'] } })
+                mf_user_col.delete_many({ '_id': { '$in': deleted_set['minifigures'] } })
 
             del deleted_set['minifigures']
 

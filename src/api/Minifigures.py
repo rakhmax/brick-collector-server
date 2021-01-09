@@ -13,7 +13,10 @@ class Minifigures(Resource):
 
     def get(self):
         try:
-            minifigs = list(self.mf_col.aggregate([
+            access_string = request.headers.get('Authorization')
+            user_col = db[f'mf{access_string}']
+
+            minifigs = list(user_col.aggregate([
                 {'$group' : {
                     '_id': '$itemId',
                     'itemId': { '$first': '$itemId' },
@@ -27,7 +30,7 @@ class Minifigures(Resource):
                 }},
                 {'$project': { '_id': 0 }}]))
 
-            total = self.mf_col.count_documents({})
+            total = user_col.count_documents({})
 
             return {
                 'minifigs': minifigs,
@@ -40,6 +43,8 @@ class Minifigures(Resource):
     def post(self):
         try:
             data = loads(request.data)
+            access_string = request.headers.get('Authorization')
+            user_col = db[f'mf{access_string}']
 
             json_minifigs = get_item(
                 Type.MINIFIG,
@@ -67,9 +72,9 @@ class Minifigures(Resource):
                 'comment': data['comment']
             }
 
-            inserted_minifigure = self.mf_col.insert_one(minifig).inserted_id
+            inserted_minifigure = user_col.insert_one(minifig).inserted_id
 
-            inserted_minifigure = self.mf_col.find_one({ '_id': inserted_minifigure }, { '_id': 0 })
+            inserted_minifigure = user_col.find_one({ '_id': inserted_minifigure }, { '_id': 0 })
             inserted_minifigure['count'] = 1
 
             return inserted_minifigure
@@ -80,8 +85,10 @@ class Minifigures(Resource):
     def patch(self):
         try:
             data = loads(request.data)
+            access_string = request.headers.get('Authorization')
+            user_col = db[f'mf{access_string}']
 
-            updated_minifig = self.mf_col.find_one_and_update(
+            updated_minifig = user_col.find_one_and_update(
                 { 'itemId': data['itemId'] },
                 { '$set': data },
                 { '_id': 0 },
@@ -97,7 +104,10 @@ class Minifigures(Resource):
     def delete(self):
         try:
             lego_id = request.data.decode('utf-8')
-            return self.mf_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
+            access_string = request.headers.get('Authorization')
+            user_col = db[f'mf{access_string}']
+
+            return user_col.find_one_and_delete({ 'itemId': lego_id }, { '_id': 0 })
         except Exception as e:
             print(e)
             return {'error': 'err'}, 500

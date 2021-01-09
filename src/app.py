@@ -8,7 +8,6 @@ from src.const import *
 app = Flask(__name__)
 CORS(app)
 
-
 auth = oauth(
     bricklink_consumer_key,
     bricklink_consumer_secret,
