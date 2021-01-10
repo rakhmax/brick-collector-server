@@ -122,6 +122,8 @@ class Sets(Resource):
                             'comment': None,
                         })
 
+            mf_ids = [minifigure['_id'] for minifigure in minifigures]
+
             set_data = {
                 'itemId': bricklink_data['no'],
                 'name': html.unescape(bricklink_data['name']),
@@ -131,7 +133,7 @@ class Sets(Resource):
                     'thumbnail': bricklink_data['thumbnail_url']
                 },
                 'year': bricklink_data['year_released'],
-                'minifigures': [minifigure['_id'] for minifigure in minifigures],
+                'minifigures': mf_ids,
                 'price': float(data['price']) if data['price'] else None,
                 'comment': data['comment'],
                 'sealed': data['sealed'],
@@ -144,11 +146,20 @@ class Sets(Resource):
             if minifigures:
                 mf_user_col.insert_many(minifigures, ordered=False)
 
-            mf = []
-
-            for minifig in minifigures:
-                del minifig['_id']
-                mf.append(minifig)
+            mf = list(mf_user_col.aggregate([
+                {'$match': {'_id': {'$in': mf_ids }}},
+                {'$group' : {
+                    '_id': '$itemId',
+                    'itemId': { '$first': '$itemId' },
+                    'image': { '$first': '$image' },
+                    'name': { '$first': '$name' },
+                    'price': { '$first': '$price' },
+                    'categoryId': { '$first': '$categoryId' },
+                    'comment': { '$first': '$comment' },
+                    'year': { '$first': '$year' },
+                    'count': { '$sum': 1 }
+                }},
+                {'$project': { '_id': 0 }}]))
 
             inserted_set = s_user_col.find_one({ '_id': inserted_set }, { '_id': 0 })
             inserted_set['minifiguresCount'] = len(inserted_set['minifigures'])
